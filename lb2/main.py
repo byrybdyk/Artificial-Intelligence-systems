@@ -6,7 +6,7 @@ KNOWLEDGE_BASE = os.path.normpath(
     os.path.join(os.path.dirname(__file__), "..", "lb1", "data.pl")
 )
 # Если ос Виндоус : заменить в пути \ на /
-print(os.name == "nt")
+# print(os.name == "nt")
 if os.name == "nt":
     KNOWLEDGE_BASE = KNOWLEDGE_BASE.replace("\\", "/")
 
@@ -21,9 +21,9 @@ REQUESTS = {
 # Получение и проверка запроса от пользователя
 def get_user_request():
     while True:
-        print(f"\n{40*"-"}")
+        print(f"\n{30*"=+"}")
         print(
-            "Что тебя интересует?\n"
+            "Доступные запросы:\n"
             f"{REQUESTS['support']} <имя персонажа>\n"
             f"{REQUESTS['carry']} <имя персонажа>\n"
             f"{REQUESTS['team']} <имя персонажа>\n"
@@ -33,7 +33,6 @@ def get_user_request():
         user_input = input("Ваш запрос: ").strip()
 
         if user_input.lower() == "exit":
-            print("Пока!")
             sys.exit(0)
 
         for request_type, request_phrase in REQUESTS.items():
@@ -68,23 +67,33 @@ def process_request(request_type, character_name):
             prolog_thread.query(f"consult('{KNOWLEDGE_BASE}').")
             response = prolog_thread.query(prolog_query)
 
+            # print(response)
+
             if response:
                 if request_type == "support":
                     supports = response[0]["Supports"]
-                    print(
-                        f"Подходящие саппорты для {character_name}: {', '.join(supports) if supports else 'не найдены.'}"
-                    )
+                    if supports:
+                        for support in supports:
+                            print(f"Подходящий сапорт для {character_name} - {support}")
+                    else:
+                        print(f"Сапорты для {character_name} не найдены.")
                 elif request_type == "carry":
                     carries = response[0]["Carries"]
-                    print(
-                        f"Подходящие керри для {character_name}: {', '.join(carries) if carries else 'не найдены.'}"
-                    )
+
+                    if carries:
+                        for carry in carries:
+                            print(f"Подходящий керри для {character_name} - {carry}")
+                    else:
+                        print(f"Керри для {character_name} не найдены.")
+
                 elif request_type == "team":
                     teams = response[0]["Teams"]
                     if teams:
                         print(f"Синхронизированные команды с {character_name}:")
                         for team in teams:
-                            print(f"- {team['args'][0]}, {team['args'][1]}")
+                            print(
+                                f"{character_name}, {team['args'][0]}, {team['args'][1]}"
+                            )
                     else:
                         print(
                             f"Синхронизированных команд с {character_name} не найдено."
