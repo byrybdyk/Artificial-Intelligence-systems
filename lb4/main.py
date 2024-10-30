@@ -4,8 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from mpl_toolkits.mplot3d import Axes3D
 
 # Загрузка данных
 DATA_PATH = os.path.normpath(os.path.join(os.path.dirname(__file__), "WineDataset.csv"))
@@ -22,9 +20,14 @@ plt.show()
 df = df.dropna()
 
 # Масштабирование данных (нормализация)
-scaler = StandardScaler()
 features = df.columns[:-1]  # Все столбцы, кроме Wine
-df[features] = scaler.fit_transform(df[features])
+
+# Вычисляем среднее и стандартное отклонение для каждого признака
+means = df[features].mean()
+stds = df[features].std()
+
+# Нормализируем значения
+df[features] = (df[features] - means) / stds
 
 # Разделение на обучающий и тестовый наборы
 X = df[features].values
@@ -76,9 +79,9 @@ def select_random_features(X_train, X_test, num_features):
 num_random_features = 3  # Число случайных признаков
 X_train_1, X_test_1 = select_random_features(X_train, X_test, num_random_features)
 
-# Модель 2: Фиксированный набор признаков (Алкоголь, Малиновая кислота, Пролин)
-X_train_2 = X_train[:, [0, 1, 12]]
-X_test_2 = X_test[:, [0, 1, 12]]
+# Модель 2: Фиксированный набор признаков (Алкоголь, Магнезиум, Интенсивность цвета)
+X_train_2 = X_train[:, [0, 3, 9]]
+X_test_2 = X_test[:, [0, 3, 9]]
 
 
 def confusion_matrix(y_true, y_pred):
@@ -94,40 +97,25 @@ def plot_confusion_matrix(y_true, y_pred, model_num, k):
     print(f"Confusion Matrix для модели {model_num} (k={k}):")
     print(conf_matrix)
 
-    # Визуализация матрицы ошибок
-    plt.figure(figsize=(8, 6))
-    sns.heatmap(
-        conf_matrix,
-        annot=True,
-        fmt="d",
-        cmap="Blues",
-        xticklabels=np.unique(y),
-        yticklabels=np.unique(y),
-    )
-    plt.title(f"Матрица ошибок для модели {model_num} (k={k})")
-    plt.xlabel("Предсказанный класс")
-    plt.ylabel("Истинный класс")
-    plt.show()
-
 
 # Оценка модели 1 и визуализация матрицы ошибок для разных значений k
 for k in [3, 5, 10]:
     accuracy_1, y_pred_1 = evaluate_knn(X_train_1, y_train, X_test_1, y_test, k)
-    print(f"Точность для модели 1 при k={k}: {accuracy_1}")
+    print(f"Точность для модели 1 (случайные признаки) при k={k}: {accuracy_1}")
     plot_confusion_matrix(y_test, y_pred_1, model_num=1, k=k)
 
 # Оценка модели 2 и визуализация матрицы ошибок для разных значений k
 for k in [3, 5, 10]:
     accuracy_2, y_pred_2 = evaluate_knn(X_train_2, y_train, X_test_2, y_test, k)
-    print(f"Точность для модели 2 при k={k}: {accuracy_2}")
+    print(f"Точность для модели 2 (фиксированные признаки) при k={k}: {accuracy_2}")
     plot_confusion_matrix(y_test, y_pred_2, model_num=2, k=k)
 
 
 # 3D-визуализация нескольких признаков
 fig = plt.figure(figsize=(10, 7))
 ax = fig.add_subplot(111, projection="3d")
-ax.scatter(df["Alcohol"], df["Malic Acid"], df["Color intensity"], c=df["Wine"])
+ax.scatter(df["Alcohol"], df["Magnesium"], df["Color intensity"], c=df["Wine"])
 ax.set_xlabel("Alcohol")
-ax.set_ylabel("Malic Acid")
+ax.set_ylabel("Magnesium")
 ax.set_zlabel("Color intensity")
 plt.show()
